@@ -22,6 +22,8 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.os.SystemClock
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -395,6 +397,18 @@ class MarkerDemoActivity :
         checkReadyThen { markerRainbow.map { marker -> marker.isFlat = flatBox.isChecked } }
     }
 
+    private var count:Int = 0
+    private val mHandler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            if (msg.what == 111) {
+                count += 1
+                lastSelectedMarker?.snippet = "test snippet $count"
+                sendEmptyMessageDelayed(111,1000)
+            }
+        }
+    }
+    
     //
     // Marker related listeners.
     //
@@ -406,6 +420,8 @@ class MarkerDemoActivity :
                 Toast.LENGTH_SHORT).show()
 
         lastSelectedMarker = marker
+        mHandler.removeMessages(111)
+        mHandler.sendEmptyMessageDelayed(111,1000)
 
         if (marker.position == places.getValue("PERTH")) {
             // This causes the marker at Perth to bounce into position when it is clicked.
@@ -448,6 +464,7 @@ class MarkerDemoActivity :
 
     override fun onInfoWindowClose(marker : Marker) {
         Toast.makeText(this, "Close Info Window", Toast.LENGTH_SHORT).show()
+        mHandler.removeMessages(111)
     }
 
     override fun onInfoWindowLongClick(marker : Marker) {
